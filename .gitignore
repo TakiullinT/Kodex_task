@@ -1,0 +1,11 @@
+bin/
+obj/
+
+.idea/
+.vs/
+.vscode/
+*.user
+
+.DS_Store
+
+result.json
