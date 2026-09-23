@@ -8,8 +8,8 @@ public class AnalyticService : IAnalyticService
 {
     public AnalyticsResult CalculateAnalytics(IReadOnlyList<Sale> sales, DateTime? startDate, DateTime? endDate)
     {
-        var filteredSales = FilterSales(sales,startDate, endDate).ToList();
-        
+        var filteredSales = FilterSales(sales,startDate, endDate);
+      
         var revenueByCategory = filteredSales
             .GroupBy(s => s.ProductCategory)
             .Select(g => new CategorySales(g.Key, g.Sum(s => s.Revenue)))
@@ -38,8 +38,8 @@ public class AnalyticService : IAnalyticService
             .Take(5)
             .ToList();
 
-        var avgDelivery = filteredSales.Count > 0
-            ? Math.Round(filteredSales.Average(s => s.DeliveryDays), 2)
+        var avgDelivery = filteredSales.Any()
+            ? Math.Round(filteredSales.Select(s => (double)s.DeliveryDays).Average(), 2)
             : 0;
 
         var avgDiscount = filteredSales
@@ -59,7 +59,7 @@ public class AnalyticService : IAnalyticService
 
     public AnalyticsResult CalculateAnalyticsParallel(IReadOnlyList<Sale> sales, DateTime? startDate, DateTime? endDate)
     {
-        var filteredSales = FilterSales(sales, startDate, endDate).ToList();
+        var filteredSales = FilterSales(sales, startDate, endDate);
 
         var categoryTotals = new ConcurrentDictionary<string, decimal>();
 
@@ -98,7 +98,7 @@ public class AnalyticService : IAnalyticService
             .Take(5)
             .ToList();
 
-        var avgDelivery = filteredSales.Count > 0
+        var avgDelivery = filteredSales.Any()
             ? Math.Round(filteredSales.AsParallel().Average(s => s.DeliveryDays), 2)
             : 0;
 

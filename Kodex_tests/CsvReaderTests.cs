@@ -35,6 +35,38 @@ public class CsvReaderTests : IDisposable
         Assert.Equal(1001, sales[0].CustomerId);
         Assert.Equal(1002, sales[1].CustomerId);
     }
+    
+    [Fact]
+    public void ReadSales_EmptyCsvWithOnlyHeaders_ReturnsEmptyListWithoutCrashing()
+    {
+        var headerOnlyCsv = "OrderId,OrderDate,CustomerId,ProductCategory,Region,Quantity,UnitPrice,Discount,PaymentMethod,DeliveryDays,CustomerRating,Revenue\n";
+        File.WriteAllText(_tempFilePath, headerOnlyCsv);
+        
+        var reader = new CsvReader(new SaleParser());
+
+        var result = reader.ReadSales(_tempFilePath);
+
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void ReadSales_WithInvalidRows_SkipsInvalidAndReturnsValid()
+    {
+        var csvContent = "OrderId,OrderDate,CustomerId,ProductCategory,Region,Quantity,UnitPrice,Discount,PaymentMethod,DeliveryDays,CustomerRating,Revenue\n" +
+                         "1,2024-01-01,101,Laptops,Europe,1,1000,0,Cash,2,5.0,1000\n" +
+                         "INVALID_ROW_MISSING_COLUMNS_OR_BAD_DATA\n" +
+                         "2,2024-01-02,102,Phones,Asia,2,500,0,Card,1,4.0,1000\n";
+        
+        File.WriteAllText(_tempFilePath, csvContent);
+        var reader = new CsvReader(new SaleParser());
+
+        var result = reader.ReadSales(_tempFilePath);
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal(1, result[0].OrderId);
+        Assert.Equal(2, result[1].OrderId);
+    }
 
     public void Dispose()
     {

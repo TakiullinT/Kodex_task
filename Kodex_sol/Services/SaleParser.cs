@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Kodex_task.Models;
 using Kodex_task.Services.Interfaces;
 
@@ -6,6 +7,10 @@ namespace Kodex_task.Services;
 
 public class SaleParser : ISaleParser
 {
+    private static readonly Regex CsvSplitRegex = new(
+        ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", 
+        RegexOptions.Compiled);
+    
     public Sale? ParseRow(string csvLine)
     {
         if (string.IsNullOrWhiteSpace(csvLine))
@@ -13,7 +18,7 @@ public class SaleParser : ISaleParser
             return null;
         }
 
-        var parts = csvLine.Split(',');
+        var parts = CsvSplitRegex.Split(csvLine);
         if (parts.Length < 12)
         {
             return null;
@@ -27,14 +32,14 @@ public class SaleParser : ISaleParser
             if (!DateTime.TryParse(parts[1].Trim(), culture, out var orderDate)) return null;
             if (!long.TryParse(parts[2].Trim(), culture, out var customerId)) return null;
 
-            var productCategory = parts[3].Trim();
-            var region = parts[4].Trim();
+            var productCategory = parts[3].Trim().Trim('"');
+            var region = parts[4].Trim().Trim('"');
 
             if (!int.TryParse(parts[5].Trim(), culture, out var quantity)) return null;
             if (!decimal.TryParse(parts[6].Trim(), culture, out var unitPrice)) return null;
             if (!decimal.TryParse(parts[7].Trim(), culture, out var discount)) return null;
 
-            var paymentMethod = parts[8].Trim();
+            var paymentMethod = parts[8].Trim().Trim('"');
 
             if (!int.TryParse(parts[9].Trim(), culture, out var deliveryDays)) return null;
             if (!double.TryParse(parts[10].Trim(), culture, out var customerRating)) return null;

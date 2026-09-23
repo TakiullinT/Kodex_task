@@ -17,13 +17,24 @@ public class CsvReader : ICsvReader
         ValidateFilePath(filePath);
         
         var sales = new List<Sale>();
+        int skippedCount = 0;
         using var reader = new StreamReader(filePath);
         
         string? line = reader.ReadLine();
         while ((line = reader.ReadLine()) != null)
         {
             var sale = _saleParser.ParseRow(line);
-            if (sale != null) sales.Add(sale);
+            if (sale != null) 
+                sales.Add(sale);
+            else 
+                skippedCount++;
+        }
+
+        if (skippedCount > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[WARNING] Пропущено некорректных строк (данные повреждены): {skippedCount}");
+            Console.ResetColor();
         }
         return sales;
     }
@@ -33,6 +44,7 @@ public class CsvReader : ICsvReader
         ValidateFilePath(filePath);
         
         var sales = new List<Sale>();
+        int skippedCount = 0;
         using var reader = new StreamReader(filePath);
         
         await reader.ReadLineAsync(cancellationToken);
@@ -40,7 +52,17 @@ public class CsvReader : ICsvReader
         while ((line = await reader.ReadLineAsync()) != null)
         {
             var sale = _saleParser.ParseRow(line);
-            if (sale != null) sales.Add(sale);
+            if (sale != null) 
+                sales.Add(sale);
+            else 
+                skippedCount++;
+        }
+        
+        if (skippedCount > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[WARNING] Пропущено некорректных строк (данные повреждены): {skippedCount}");
+            Console.ResetColor();
         }
         
         return sales;

@@ -44,4 +44,29 @@ public class ParserTests
         var result = _parser.ParseRow(invalidLine);
         Assert.Null(result);
     }
+    
+    [Fact]
+    public void ParseRow_WithEscapedCommas_ParsesCorrectlyAndStripsQuotes()
+    {
+        var parser = new SaleParser();
+        var csvLine = "1,2024-01-01,123,\"Phones, Mobile\",\"North, America\",2,1500.00,0.1,Card,3,4.8,2700.00";
+
+        var result = parser.ParseRow(csvLine);
+
+        Assert.NotNull(result);
+        Assert.Equal("Phones, Mobile", result.ProductCategory);
+        Assert.Equal("North, America", result.Region);
+        Assert.Equal(1500.00m, result.UnitPrice);
+    }
+    
+    [Fact]
+    public void ParseRow_InvalidRowMissingColumns_ReturnsNull()
+    {
+        var parser = new SaleParser();
+        var csvLine = "1,2024-01-01,123,\"Phones, Mobile\""; 
+
+        var result = parser.ParseRow(csvLine);
+
+        Assert.Null(result);
+    }
 }
